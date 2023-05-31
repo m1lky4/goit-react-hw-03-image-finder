@@ -1,4 +1,4 @@
-import { Component } from "react";
+import React, { Component } from "react";
 import { SearchBar } from "./Searchbar/Searchbar";
 import { ImageGallery } from "./ImageGallery/ImageGallery";
 import { getImages } from 'components/ImagesAPI/imagesApi';
@@ -8,7 +8,7 @@ export class App extends Component {
   state = {
     isSubmitted: false,
     inputValue: '',
-    response: { data: { hits: [] } },
+    response: { data: { hits: [], totalHits: 0 } },
     error: null,
     page: 1,
     isLoading: false
@@ -16,13 +16,13 @@ export class App extends Component {
 
   handleSubmit = async (e) => {
     e.preventDefault();
-    this.setState({ isSubmitted: true, error: null, response: { data: { hits: [] }}, page: 1,isLoading:true}, () => {
-    this.fetchImages();
+    this.setState({ isSubmitted: true, error: null, response: { data: { hits: [], totalHits: 0 } }, page: 1, isLoading: true }, () => {
+      this.fetchImages();
     });
   };
 
   loadMore = async () => {
-    this.setState((prev) => ({ page: prev.page + 1}), () => {
+    this.setState((prev) => ({ page: prev.page + 1 }), () => {
       this.fetchImages();
     });
   };
@@ -34,8 +34,10 @@ export class App extends Component {
         response: {
           data: {
             hits: [...prev.response.data.hits, ...response.data.hits],
+            totalHits: response.data.totalHits
           },
-        },isLoading:false,
+        },
+        isLoading: false,
       }));
     } catch (error) {
       this.setState({ error });
@@ -48,24 +50,27 @@ export class App extends Component {
   };
 
   render() {
-  const { isSubmitted, response, error, isLoading } = this.state;
+    const { isSubmitted, response, error, isLoading } = this.state;
+    const { hits, totalHits } = response.data;
+    const showLoadMoreButton = hits.length < totalHits;
 
-  return (
-    <>
-      <SearchBar handleSubmit={this.handleSubmit} handleChange={this.handleChange} />
-      {isSubmitted && !error && (
-        <>
-        <ImageGallery
-          isSubmitted={isSubmitted}
-          response={response}
-          isLoading={isLoading}
-          fetchImages={this.fetchImages}
-        />
-        <ButtonLoadMore loadMore={this.loadMore} />
-        </>
-      )}
-    </>
-  );
+    return (
+      <div>
+        <SearchBar handleSubmit={this.handleSubmit} handleChange={this.handleChange} />
+        {isSubmitted && !error && (
+          <>
+            <ImageGallery
+              isSubmitted={isSubmitted}
+              response={response}
+              isLoading={isLoading}
+              fetchImages={this.fetchImages}
+            />
+            {showLoadMoreButton && (
+              <ButtonLoadMore loadMore={this.loadMore} />
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
 }
-}
-
