@@ -10,18 +10,19 @@ export class App extends Component {
     inputValue: '',
     response: { data: { hits: [] } },
     error: null,
-    page: 1
+    page: 1,
+    isLoading: false
   };
 
   handleSubmit = async (e) => {
     e.preventDefault();
-    this.setState({ isSubmitted: true, error: null, response: { data: { hits: [] } }, page: 1 }, () => {
+    this.setState({ isSubmitted: true, error: null, response: { data: { hits: [] }}, page: 1,isLoading:true}, () => {
     this.fetchImages();
     });
   };
 
   loadMore = async () => {
-    this.setState((prev) => ({ page: prev.page + 1 }), () => {
+    this.setState((prev) => ({ page: prev.page + 1}), () => {
       this.fetchImages();
     });
   };
@@ -34,7 +35,7 @@ export class App extends Component {
           data: {
             hits: [...prev.response.data.hits, ...response.data.hits],
           },
-        },
+        },isLoading:false,
       }));
     } catch (error) {
       this.setState({ error });
@@ -47,18 +48,24 @@ export class App extends Component {
   };
 
   render() {
-    const { isSubmitted, response, error } = this.state;
+  const { isSubmitted, response, error, isLoading } = this.state;
 
-    return (
-      <>
-        <SearchBar handleSubmit={this.handleSubmit} handleChange={this.handleChange} />
-        {isSubmitted && !error && (
-          <>
-            <ImageGallery isSubmitted={isSubmitted} response={response} />
-            <ButtonLoadMore loadMore={this.loadMore} />
-          </>
-        )}
-      </>
-    );
-  }
+  return (
+    <>
+      <SearchBar handleSubmit={this.handleSubmit} handleChange={this.handleChange} />
+      {isSubmitted && !error && (
+        <>
+        <ImageGallery
+          isSubmitted={isSubmitted}
+          response={response}
+          isLoading={isLoading}
+          fetchImages={this.fetchImages}
+        />
+        <ButtonLoadMore loadMore={this.loadMore} />
+        </>
+      )}
+    </>
+  );
 }
+}
+
